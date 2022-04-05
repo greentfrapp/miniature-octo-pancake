@@ -27,7 +27,7 @@ export default defineComponent({
   data () {
     return {
       openai: null as any,
-      query: '',
+      query: '' as any,
       response: '',
       loading: false,
       sampleQuestions: [
@@ -35,32 +35,29 @@ export default defineComponent({
         'Who are your children?',
         'What do you think about China?',
         'Why did you name our nuke Bobo?',
-      ]
+      ],
+      lambdaUrl: 'https://7nnt93gjve.execute-api.us-east-1.amazonaws.com/default/lky-demo',
     }
   },
   methods: {
     async submit () {
-      this.loading = true
-      const response = await this.openai.createCompletion("text-davinci-002", {
-        prompt: `This is how Lee Kuan Yew, minister mentor of Singapore, would have responded to the following questions:\n\nQ: What were you doing during the Japanese occupation from 1942 to 1945?\nA:Well, I was a student at Raffles College, now the University of Singapore, doing English literature. Mathematics and Economics. And the Japanese came, knocked us about, and the three-and-a-half years was really a nightmare. I'm not quite sure whether it was worse to have been in a Japanese prisoner of war camp, or worse to have been a member of their Co-Prosperity Sphere outside their prisoner of war camps, working for their prosperity.\n\nQ:${this.query}\nA:`,
-        temperature: 0.3,
-        stop: '\n\nQ:',
-        max_tokens: 1000,
-      })
-      this.loading = false
-      this.response = response.data.choices[0].text
+      this.sendQuery(`This is how Lee Kuan Yew, minister mentor of Singapore, would have responded to the following questions:\n\nQ: What were you doing during the Japanese occupation from 1942 to 1945?\nA:Well, I was a student at Raffles College, now the University of Singapore, doing English literature. Mathematics and Economics. And the Japanese came, knocked us about, and the three-and-a-half years was really a nightmare. I'm not quite sure whether it was worse to have been in a Japanese prisoner of war camp, or worse to have been a member of their Co-Prosperity Sphere outside their prisoner of war camps, working for their prosperity.\n\nQ:${this.query}\nA:`)
     },
     async submitQuestion (question:string) {
       this.query = question
+      this.sendQuery(`This is how Lee Kuan Yew, minister mentor of Singapore, would have responded to the following questions:\n\nQ: What were you doing during the Japanese occupation from 1942 to 1945?\nA:Well, I was a student at Raffles College, now the University of Singapore, doing English literature. Mathematics and Economics. And the Japanese came, knocked us about, and the three-and-a-half years was really a nightmare. I'm not quite sure whether it was worse to have been in a Japanese prisoner of war camp, or worse to have been a member of their Co-Prosperity Sphere outside their prisoner of war camps, working for their prosperity.\n\nQ:${question}\nA:`)
+    },
+    sendQuery (query:string) {
       this.loading = true
-      const response = await this.openai.createCompletion("text-davinci-002", {
-        prompt: `This is how Lee Kuan Yew, minister mentor of Singapore, would have responded to the following questions:\n\nQ: What were you doing during the Japanese occupation from 1942 to 1945?\nA:Well, I was a student at Raffles College, now the University of Singapore, doing English literature. Mathematics and Economics. And the Japanese came, knocked us about, and the three-and-a-half years was really a nightmare. I'm not quite sure whether it was worse to have been in a Japanese prisoner of war camp, or worse to have been a member of their Co-Prosperity Sphere outside their prisoner of war camps, working for their prosperity.\n\nQ:${question}\nA:`,
-        temperature: 0.3,
-        stop: '\n\nQ:',
-        max_tokens: 1000,
+      fetch(this.lambdaUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+        })
+      }).then(async response => {
+        this.response = await response.json()
+        this.loading = false
       })
-      this.loading = false
-      this.response = response.data.choices[0].text
     },
   }
 })
