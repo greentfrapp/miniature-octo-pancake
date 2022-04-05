@@ -19,6 +19,7 @@ import { Configuration, OpenAIApi } from 'openai'
 export default defineComponent({
   mounted () {
     const configuration = new Configuration({
+      organization: 'org-pgTqG9vntzJg1aU5uaPZyHZQ',
       apiKey: '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',
     })
     this.openai = new OpenAIApi(configuration)
